@@ -1,13 +1,13 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
---font-sans: var(--font-plex), system-ui, sans-serif;
+  --font-sans: var(--font-plex), system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), monospace;
   --font-serif: var(--font-instrument), Georgia, serif;
   --font-heading: var(--font-instrument), Georgia, serif;
@@ -55,11 +55,11 @@
 }
 
 :root {
-  --ink: #14213D;
-  --paper: #F2F4F1;
-  --emerald: #0F6B4F;
-  --sienna: #B5482A;
-  --marigold: #E8A33D;
+  --ink: #14213d;
+  --paper: #f2f4f1;
+  --emerald: #0f6b4f;
+  --sienna: #b5482a;
+  --marigold: #e8a33d;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
