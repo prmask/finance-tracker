@@ -1,5 +1,4 @@
 // Paisaa — Personal Finance Tracker
-// Replace the entire contents of prisma/schema.prisma with this file.
 
 generator client {
   provider = "prisma-client-js"
