@@ -1,19 +1,40 @@
 // src/app/(app)/transactions/page.tsx
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { AddTransactionForm } from './add-transaction-form';
+import { TransactionFilters } from './transaction-filters';
 import { TransactionList } from './transaction-list';
 
-export default async function TransactionsPage() {
+export default async function TransactionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string; categoryId?: string; accountId?: string }>;
+}) {
   const session = await auth();
   if (!session?.user?.id) redirect('/login');
   const userId = session.user.id;
 
+  const { month, categoryId, accountId } = await searchParams;
+
+  const where: Prisma.TransactionWhereInput = { userId };
+  if (categoryId) where.categoryId = categoryId;
+  if (accountId) where.moneyAccountId = accountId;
+  if (month && /^\d{4}-\d{2}$/.test(month)) {
+    const [year, monthNum] = month.split('-').map(Number);
+    where.date = {
+      gte: new Date(year, monthNum - 1, 1),
+      lte: new Date(year, monthNum, 0, 23, 59, 59),
+    };
+  }
+
+  const isFiltered = Boolean(month || categoryId || accountId);
+
   const [transactions, categories, accounts] = await Promise.all([
     prisma.transaction
       .findMany({
-        where: { userId },
+        where,
         orderBy: { date: 'desc' },
         take: 100,
         select: {
@@ -58,11 +79,30 @@ export default async function TransactionsPage() {
 
       <AddTransactionForm categories={categories} accounts={accounts} />
 
-      <div className='mt-8'>
+      <div className='mt-6'>
+        <TransactionFilters
+          categories={categories}
+          accounts={accounts}
+          month={month ?? ''}
+          categoryId={categoryId ?? ''}
+          accountId={accountId ?? ''}
+        />
+      </div>
+
+      <div className='mt-6'>
+        {isFiltered && (
+          <p
+            className='mb-2 text-xs opacity-60'
+            style={{ color: 'var(--ink)' }}
+          >
+            {transactions.length} result{transactions.length === 1 ? '' : 's'}
+          </p>
+        )}
         <TransactionList
           transactions={transactions}
           categories={categories}
           accounts={accounts}
+          isFiltered={isFiltered}
         />
       </div>
     </main>

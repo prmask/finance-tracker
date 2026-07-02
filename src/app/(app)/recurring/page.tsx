@@ -47,8 +47,9 @@ export default async function RecurringPage() {
           Recurring & Scheduled
         </h1>
         <p className='mt-0.5 text-sm text-[var(--ink)]/50'>
-          SIP auto-invests and auto-debit subscriptions. Reminders only for
-          now — this doesn&apos;t create transactions automatically yet.
+          SIP auto-invests and auto-debit subscriptions. Once a rule&apos;s
+          due date passes, it posts as a real transaction automatically —
+          no need to log it by hand.
         </p>
       </div>
 

@@ -2,7 +2,7 @@
 
 **Positioning:** Indian-first personal finance tracker with a bank-passbook aesthetic. ₹-denominated, UPI-aware, SIP-aware — not a US template with the currency swapped.
 
-**Stack:** Next.js (App Router) · TypeScript · Tailwind CSS · shadcn/ui · Prisma · PostgreSQL · NextAuth.js (Google) · Recharts
+**Stack:** Next.js (App Router) · TypeScript · Tailwind CSS · shadcn/ui · Prisma · PostgreSQL · NextAuth.js (Google) · Recharts · Vitest
 
 **Architecture:** Full-stack server app. All data in PostgreSQL, accessed via Prisma through API routes/Server Actions. Auth-gated per user.
 
@@ -10,15 +10,20 @@
 
 ## Features
 
+### 0. Landing page
+
+- Marketing page at `/` for signed-out visitors: pitch, a static illustrative passbook preview, and a "Continue with Google" CTA
+- Signed-in users are redirected straight to `/dashboard`, same as `/login`
+
 ### 1. Auth & User
 
 - Google login via NextAuth.js
 - Every query scoped to the logged-in user — users only ever see their own data
-- Profile basics (name, avatar from Google)
+- Profile basics: name/email, and an initials avatar (e.g. "PK") computed from the Google profile — not the Google photo itself
 
 ### 2. Accounts (money sources)
 
-- CRUD: bank account, credit card, UPI wallet, cash
+- CRUD: bank account, credit card, UPI wallet, cash, loan
 - Fields: name, type, last-4 digits, color
 - Per-account balance contribution
 - Design ref: "HDFC ····2841", "ICICI ····7733" labels
@@ -33,17 +38,19 @@
 
 - CRUD: amount, date, merchant/description, category, account, payment method (UPI / auto-debit / NEFT / card / cash), direction (in/out)
 - List rows: icon · merchant · "UPI · HDFC ····2841 · 9 Jun" meta · signed ₹ amount (emerald in / sienna out)
-- Filters: month, category, account
+- Filters: month, category, account — combine freely, state lives in the URL
+- CSV export, honoring whatever filters are currently active; exports the full matching set, not just the on-screen page
 - Design ref: Recent Transactions card
 
 ### 5. Dashboard
 
-- Balance strip: total balance, money in, money out (current month)
-- Cash flow chart: income vs expense over time (Recharts)
-- Category spending breakdown (top categories)
-- Recent transactions (latest 5–6)
-- Budgets summary with status bars
-- Upcoming payment card (next due SIP/auto-debit)
+- Passbook hero: all-time running balance (accounts have no stored balance, so it's derived from transaction history) with a paise split, money in / money out / saved% for the viewed month, the account list, "updated at" timestamp, and a rotated ON TRACK / OVER BUDGET stamp driven by real budget data
+- Topbar: `‹ MONTH YYYY ›` picker (URL-driven) and a "+ Add transaction" button
+- Cash flow chart: money in vs money out, last 6 real months, bar chart (Recharts)
+- Category spending breakdown (top 6 categories, viewed month)
+- Recent transactions (latest 8, viewed month)
+- Budgets summary with status bars, linking to the full editor
+- Upcoming payment card (next due SIP/auto-debit), linking to the recurring rules editor
 - Design ref: the full Paisaa main layout
 
 ### 6. Budgets
@@ -55,12 +62,18 @@
 
 ### 7. Recurring & Scheduled
 
-- `RecurringRule`: amount, frequency, next run date, category, account, kind (expense | investment)
+- `RecurringRule`: amount, frequency, next run date, category, account, kind (expense | investment), active/paused
+- Full CRUD (create, edit, delete, pause) at `/recurring`
 - Covers both auto-debit subscriptions (Netflix) and SIP reminders ("SIP runs in 4 days · Nifty 50 · 15th monthly")
-- v1 = dashboard reminder card only; auto-creating transactions on due date = later enhancement
+- Dashboard reminder card, plus auto-posts as a real transaction once the due date passes (no cron — caught up on each authenticated page load) and advances to the next occurrence
 
 ### 8. Design System (non-negotiable — this is the differentiator)
 
 - Fonts: Instrument Serif (headings) · IBM Plex Sans (body) · IBM Plex Mono (all figures)
 - Tokens: `--ink #14213D` · `--paper #F2F4F1` · `--emerald #0F6B4F` · `--sienna #B5482A` · `--marigold #E8A33D`
-- Sidebar nav, card layout, ruled-line passbook hero, responsive (sidebar collapses <760px)
+- Sidebar nav, card layout, ruled-line passbook hero, responsive (sidebar collapses below Tailwind's `md` breakpoint, 768px)
+
+### 9. Testing
+
+- Vitest suite covering the calculation logic (`lib/dashboard-math.ts`, `lib/budget-math.ts`, `lib/csv.ts`): balance derivation, budget status thresholds, cash-flow month bucketing, category aggregation, CSV escaping
+- `npm test` / `npm run test:watch`

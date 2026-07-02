@@ -1,4 +1,10 @@
 // src/lib/dashboard.ts
+import {
+  buildCategoryBreakdown,
+  buildMonthlyCashFlowBuckets,
+  computeIncomeExpense,
+  computeRunningBalance,
+} from '@/lib/dashboard-math';
 import { getBudgetsData } from '@/lib/budgets';
 import { prisma } from '@/lib/prisma';
 
@@ -62,22 +68,8 @@ export async function getDashboardData(userId: string, targetMonth?: Date) {
     }),
   ]);
 
-  const totalBalance = allTimeFlows.reduce(
-    (sum, t) => sum + (t.direction === 'IN' ? Number(t.amount) : -Number(t.amount)),
-    0,
-  );
-
-  // Compute balance strip numbers
-  const totalIncome = transactions
-    .filter((t) => t.direction === 'IN')
-    .reduce((sum, t) => sum + Number(t.amount), 0);
-
-  const totalExpense = transactions
-    .filter((t) => t.direction === 'OUT')
-    .reduce((sum, t) => sum + Number(t.amount), 0);
-
-  const netBalance = totalIncome - totalExpense;
-  const savedPct = totalIncome > 0 ? (netBalance / totalIncome) * 100 : 0;
+  const totalBalance = computeRunningBalance(allTimeFlows);
+  const { totalIncome, totalExpense, savedPct } = computeIncomeExpense(transactions);
 
   const activeBudgetRows = budgetsData.rows.filter((r) => r.monthlyLimit !== null);
   const totalBudgetLimit = activeBudgetRows.reduce(
@@ -85,51 +77,8 @@ export async function getDashboardData(userId: string, targetMonth?: Date) {
     0,
   );
 
-  // Cash flow: money in vs money out per month, last 6 real months
-  const monthBuckets = Array.from({ length: 6 }, (_, i) => {
-    const d = new Date(realNow.getFullYear(), realNow.getMonth() - (5 - i), 1);
-    return {
-      year: d.getFullYear(),
-      month: d.getMonth(),
-      date: d.toLocaleDateString('en-IN', { month: 'short' }).toUpperCase(),
-      income: 0,
-      expense: 0,
-    };
-  });
-  for (const t of sixMonthFlows) {
-    const bucket = monthBuckets.find(
-      (b) => b.year === t.date.getFullYear() && b.month === t.date.getMonth(),
-    );
-    if (!bucket) continue;
-    if (t.direction === 'IN') bucket.income += Number(t.amount);
-    else bucket.expense += Number(t.amount);
-  }
-  const cashFlowData = monthBuckets.map(({ date, income, expense }) => ({
-    date,
-    income,
-    expense,
-  }));
-
-  // Category breakdown (expenses only, viewed month)
-  const categoryMap: Record<
-    string,
-    { name: string; emoji: string; total: number; color: string }
-  > = {};
-  for (const t of transactions.filter((t) => t.direction === 'OUT')) {
-    const key = t.categoryId ?? 'uncategorized';
-    if (!categoryMap[key]) {
-      categoryMap[key] = {
-        name: t.category?.name ?? 'Uncategorized',
-        emoji: t.category?.emoji ?? '📦',
-        total: 0,
-        color: t.category?.color ?? '#94a3b8',
-      };
-    }
-    categoryMap[key].total += Number(t.amount);
-  }
-  const categoryBreakdown = Object.values(categoryMap)
-    .sort((a, b) => b.total - a.total)
-    .slice(0, 6);
+  const cashFlowData = buildMonthlyCashFlowBuckets(realNow, sixMonthFlows);
+  const categoryBreakdown = buildCategoryBreakdown(transactions);
 
   // Recent transactions (latest 8 of the viewed month)
   const recentTransactions = transactions.slice(0, 8).map((t) => ({
@@ -139,7 +88,6 @@ export async function getDashboardData(userId: string, targetMonth?: Date) {
 
   return {
     totalBalance,
-    netBalance,
     totalIncome,
     totalExpense,
     savedPct,

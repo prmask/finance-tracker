@@ -69,10 +69,12 @@ export function TransactionList({
   transactions,
   categories,
   accounts,
+  isFiltered = false,
 }: {
   transactions: Transaction[];
   categories: Category[];
   accounts: Account[];
+  isFiltered?: boolean;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -104,7 +106,9 @@ export function TransactionList({
         className='py-8 text-center text-sm opacity-60'
         style={{ color: 'var(--ink)' }}
       >
-        No transactions yet. Add your first one above.
+        {isFiltered
+          ? 'No transactions match these filters.'
+          : 'No transactions yet. Add your first one above.'}
       </p>
     );
   }

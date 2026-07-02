@@ -1,18 +1,12 @@
 // src/lib/budgets.ts
+import {
+  buildBudgetRows,
+  computeAllOnTrack,
+  sumSpentByCategory,
+} from '@/lib/budget-math';
 import { prisma } from '@/lib/prisma';
 
-export type BudgetStatus = 'on-track' | 'warning' | 'over';
-
-export interface BudgetRow {
-  categoryId: string;
-  categoryName: string;
-  emoji: string | null;
-  color: string | null;
-  monthlyLimit: number | null;
-  spent: number;
-  pct: number | null;
-  status: BudgetStatus | null;
-}
+export type { BudgetRow, BudgetStatus } from '@/lib/budget-math';
 
 export async function getBudgetsData(userId: string, targetMonth?: Date) {
   const now = targetMonth ?? new Date();
@@ -42,38 +36,13 @@ export async function getBudgetsData(userId: string, targetMonth?: Date) {
     }),
   ]);
 
-  const spentByCategory: Record<string, number> = {};
-  for (const t of transactions) {
-    spentByCategory[t.categoryId] =
-      (spentByCategory[t.categoryId] ?? 0) + Number(t.amount);
-  }
-
-  const budgetByCategory = new Map(budgets.map((b) => [b.categoryId, b]));
-
-  const rows: BudgetRow[] = categories.map((cat) => {
-    const budget = budgetByCategory.get(cat.id);
-    const spent = spentByCategory[cat.id] ?? 0;
-    const monthlyLimit = budget ? Number(budget.monthlyLimit) : null;
-    const pct = monthlyLimit ? (spent / monthlyLimit) * 100 : null;
-    const status: BudgetStatus | null =
-      pct === null ? null : pct > 100 ? 'over' : pct >= 80 ? 'warning' : 'on-track';
-
-    return {
-      categoryId: cat.id,
-      categoryName: cat.name,
-      emoji: cat.emoji,
-      color: cat.color,
-      monthlyLimit,
-      spent,
-      pct,
-      status,
-    };
-  });
-
-  const activeBudgets = rows.filter((r) => r.monthlyLimit !== null);
-  const allOnTrack =
-    activeBudgets.length > 0 &&
-    activeBudgets.every((r) => r.status === 'on-track');
+  const spentByCategory = sumSpentByCategory(transactions);
+  const normalizedBudgets = budgets.map((b) => ({
+    categoryId: b.categoryId,
+    monthlyLimit: Number(b.monthlyLimit),
+  }));
+  const rows = buildBudgetRows(categories, normalizedBudgets, spentByCategory);
+  const allOnTrack = computeAllOnTrack(rows);
 
   return {
     rows,

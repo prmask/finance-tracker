@@ -1,5 +1,6 @@
 // src/app/(app)/layout.tsx
 import { auth, signOut } from '@/auth';
+import { processDueRecurringRules } from '@/lib/recurring';
 import { redirect } from 'next/navigation';
 import { MobileNav, SidebarNav } from './sidebar-nav';
 
@@ -17,6 +18,10 @@ export default async function AppLayout({
 }) {
   const session = await auth();
   if (!session?.user) redirect('/login');
+
+  // Catch-up pass: materialize any RecurringRule that's come due since the
+  // user was last here, before anything on the page reads transaction data.
+  if (session.user.id) await processDueRecurringRules(session.user.id);
 
   const displayName = session.user.name ?? session.user.email ?? 'Account';
 
