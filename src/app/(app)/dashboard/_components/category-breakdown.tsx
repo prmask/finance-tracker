@@ -2,7 +2,7 @@
 
 interface Category {
   name: string;
-  icon: string;
+  emoji: string;
   total: number;
   color: string;
 }
@@ -10,6 +10,7 @@ interface Category {
 interface Props {
   categories: Category[];
   totalExpense: number;
+  monthShort: string;
 }
 
 function fmt(n: number) {
@@ -20,12 +21,15 @@ function fmt(n: number) {
   }).format(n);
 }
 
-export function CategoryBreakdown({ categories, totalExpense }: Props) {
+export function CategoryBreakdown({ categories, totalExpense, monthShort }: Props) {
   return (
     <div className='rounded-xl border border-[var(--ink)]/10 bg-white p-5'>
-      <p className='font-sans text-xs uppercase tracking-widest text-[var(--ink)]/50 mb-4'>
-        Spending by Category
-      </p>
+      <div className='mb-4 flex items-baseline justify-between'>
+        <p className='font-serif text-lg text-[var(--ink)]'>Where it went</p>
+        <span className='font-mono text-[11px] tracking-widest text-[var(--ink-soft)] uppercase'>
+          {monthShort}
+        </span>
+      </div>
 
       {categories.length === 0 ? (
         <p className='font-sans text-sm text-[var(--ink)]/30 py-6 text-center'>
@@ -39,7 +43,7 @@ export function CategoryBreakdown({ categories, totalExpense }: Props) {
               <li key={cat.name}>
                 <div className='flex items-center justify-between mb-1'>
                   <div className='flex items-center gap-2'>
-                    <span className='text-base leading-none'>{cat.icon}</span>
+                    <span className='text-base leading-none'>{cat.emoji}</span>
                     <span className='font-sans text-sm text-[var(--ink)]'>
                       {cat.name}
                     </span>

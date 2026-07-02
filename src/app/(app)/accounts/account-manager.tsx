@@ -7,7 +7,7 @@ import { createAccount, deleteAccount, updateAccount } from './actions';
 type MoneyAccount = {
   id: string;
   name: string;
-  type: 'BANK' | 'CREDIT_CARD' | 'UPI_WALLET' | 'CASH';
+  type: 'BANK' | 'CREDIT_CARD' | 'UPI_WALLET' | 'CASH' | 'LOAN';
   last4: string | null;
   color: string | null;
 };
@@ -19,6 +19,7 @@ const TYPE_META: Record<MoneyAccount['type'], { label: string; icon: string }> =
     CREDIT_CARD: { label: 'Credit Card', icon: '💳' },
     UPI_WALLET: { label: 'UPI / Wallet', icon: '📲' },
     CASH: { label: 'Cash', icon: '💵' },
+    LOAN: { label: 'Loan', icon: '📉' },
   };
 
 // Renders "HDFC ····2841" from name="HDFC" last4="2841"
@@ -102,6 +103,7 @@ export function AccountManager({ accounts }: { accounts: MoneyAccount[] }) {
             <option value='CREDIT_CARD'>Credit Card</option>
             <option value='UPI_WALLET'>UPI / Wallet</option>
             <option value='CASH'>Cash</option>
+            <option value='LOAN'>Loan</option>
           </select>
         </label>
 
@@ -166,6 +168,7 @@ export function AccountManager({ accounts }: { accounts: MoneyAccount[] }) {
                   <option value='CREDIT_CARD'>Credit Card</option>
                   <option value='UPI_WALLET'>UPI / Wallet</option>
                   <option value='CASH'>Cash</option>
+                  <option value='LOAN'>Loan</option>
                 </select>
                 <input
                   name='last4'

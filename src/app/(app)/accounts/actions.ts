@@ -13,7 +13,7 @@ async function requireUserId(): Promise<string> {
   return session.user.id;
 }
 
-const VALID_TYPES = ['BANK', 'CREDIT_CARD', 'UPI_WALLET', 'CASH'] as const;
+const VALID_TYPES = ['BANK', 'CREDIT_CARD', 'UPI_WALLET', 'CASH', 'LOAN'] as const;
 type AccountType = (typeof VALID_TYPES)[number];
 
 function parseAccountInput(

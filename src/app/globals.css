@@ -56,10 +56,15 @@
 
 :root {
   --ink: #14213d;
+  --ink-soft: #3a4663;
   --paper: #f2f4f1;
   --emerald: #0f6b4f;
+  --emerald-soft: #e3efe9;
   --sienna: #b5482a;
+  --sienna-soft: #f6e8e3;
   --marigold: #e8a33d;
+  --line: #dde1da;
+  --rule: #e7eae4;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);

@@ -8,7 +8,7 @@ interface Transaction {
   description: string | null;
   date: Date;
   paymentMethod: string | null;
-  category: { name: string; icon: string } | null;
+  category: { name: string; emoji: string | null } | null;
   moneyAccount: { name: string; last4: string | null } | null;
 }
 
@@ -27,15 +27,13 @@ function fmt(n: number) {
 export function RecentTransactions({ transactions }: Props) {
   return (
     <div className='rounded-xl border border-[var(--ink)]/10 bg-white p-5'>
-      <div className='flex items-center justify-between mb-4'>
-        <p className='font-sans text-xs uppercase tracking-widest text-[var(--ink)]/50'>
-          Recent Transactions
-        </p>
+      <div className='flex items-baseline justify-between mb-4'>
+        <p className='font-serif text-lg text-[var(--ink)]'>Recent transactions</p>
         <Link
           href='/transactions'
-          className='font-sans text-xs text-[var(--emerald)] hover:underline'
+          className='font-mono text-[11px] uppercase tracking-widest text-[var(--ink-soft)] hover:text-[var(--ink)]'
         >
-          View all →
+          See all
         </Link>
       </div>
 
@@ -68,7 +66,7 @@ export function RecentTransactions({ transactions }: Props) {
               <li key={t.id} className='flex items-center gap-3 py-3'>
                 {/* Icon */}
                 <div className='w-9 h-9 rounded-full bg-[var(--ink)]/5 flex items-center justify-center text-base shrink-0'>
-                  {t.category?.icon ?? (isIn ? '💰' : '📦')}
+                  {t.category?.emoji ?? (isIn ? '💰' : '📦')}
                 </div>
 
                 {/* Description + meta */}
